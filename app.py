@@ -1,5 +1,6 @@
 from pathlib import Path
 import sqlite3
+import os
 
 from flask import Flask, render_template, request, redirect, url_for
 
@@ -144,5 +145,13 @@ def delete_schedule(schedule_id):
             return "Không tìm thấy lịch học.", 404
 
     return redirect(url_for("home"))
+@app.route("/health")
+def health():
+    return {"status": "ok", "app": "CloudTask"}, 200
+
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", "5000"))
+    app.run(host="0.0.0.0", port=port, debug=False)
+    {"app":"CloudTask","status":"ok"}
+    
