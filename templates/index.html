@@ -1,16 +1,85 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CloudTask - Quản lý lịch học cá nhân</title>
+    <title>CloudTask</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background: #f3f6fb;
+            color: #182235;
+        }
+        form, table {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        form {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+        input, select, button {
+            padding: 10px;
+            font: inherit;
+        }
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 14px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
 </head>
 <body>
     <h1>CloudTask</h1>
-    <p>lich xem phim sex jav,usuk,viet69</p>
+    <p>Quản lý lịch học cá nhân</p>
+
+    <h2>Thêm lịch học</h2>
+    <form action="{{ url_for('add_schedule') }}" method="post">
+        <label for="subject">Tên môn học</label>
+        <input id="subject" name="subject" required>
+
+        <label for="day">Thứ học</label>
+        <select id="day" name="day" required>
+            <option value="">Chọn thứ</option>
+            <option>Thứ 2</option>
+            <option>Thứ 3</option>
+            <option>Thứ 4</option>
+            <option>Thứ 5</option>
+            <option>Thứ 6</option>
+            <option>Thứ 7</option>
+            <option>Chủ nhật</option>
+        </select>
+
+        <label for="start_time">Giờ bắt đầu</label>
+        <input id="start_time" type="time" name="start_time" required>
+
+        <label for="end_time">Giờ kết thúc</label>
+        <input id="end_time" type="time" name="end_time" required>
+
+        <label for="room">Phòng học</label>
+        <input id="room" name="room" required>
+
+        <button type="submit">Thêm lịch học</button>
+    </form>
 
     <h2>Lịch học của tôi</h2>
-    <table border="1" cellpadding="10">
+    <table>
         <thead>
             <tr>
                 <th>Môn học</th>
@@ -20,9 +89,20 @@
             </tr>
         </thead>
         <tbody>
+            {% for schedule in schedules %}
+            <tr>
+                <td>{{ schedule.subject }}</td>
+                <td>{{ schedule.day }}</td>
+                <td>
+                    {{ schedule.start_time }} – {{ schedule.end_time }}
+                </td>
+                <td>{{ schedule.room }}</td>
+            </tr>
+            {% else %}
             <tr>
                 <td colspan="4">Chưa có lịch học.</td>
             </tr>
+            {% endfor %}
         </tbody>
     </table>
 </body>
