@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sửa lịch học - CloudTask</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background: #f3f6fb;
+            color: #182235;
+        }
+        form {
+            display: grid;
+            gap: 12px;
+            padding: 24px;
+            background: white;
+            border-radius: 10px;
+        }
+        input, select, button {
+            padding: 10px;
+            font: inherit;
+        }
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sửa lịch học</h1>
+
+    <form method="post"
+          action="{{ url_for('edit_schedule', schedule_id=schedule.id) }}">
+        <label for="subject">Tên môn học</label>
+        <input id="subject" name="subject"
+               value="{{ schedule.subject }}" required>
+
+        <label for="day">Thứ học</label>
+        <select id="day" name="day" required>
+            {% for day in [
+                'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5',
+                'Thứ 6', 'Thứ 7', 'Chủ nhật'
+            ] %}
+            <option value="{{ day }}"
+                    {% if day == schedule.day %}selected{% endif %}>
+                {{ day }}
+            </option>
+            {% endfor %}
+        </select>
+
+        <label for="start_time">Giờ bắt đầu</label>
+        <input id="start_time" type="time" name="start_time"
+               value="{{ schedule.start_time }}" required>
+
+        <label for="end_time">Giờ kết thúc</label>
+        <input id="end_time" type="time" name="end_time"
+               value="{{ schedule.end_time }}" required>
+
+        <label for="room">Phòng học</label>
+        <input id="room" name="room"
+               value="{{ schedule.room }}" required>
+
+        <button type="submit">Lưu thay đổi</button>
+        <a href="{{ url_for('home') }}">Hủy và quay lại</a>
+    </form>
+</body>
+</html>

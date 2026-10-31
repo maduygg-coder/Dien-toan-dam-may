@@ -77,6 +77,72 @@ def add_schedule():
 
     return redirect(url_for("home"))
 
+@app.route("/schedules/<int:schedule_id>/edit", methods=["GET", "POST"])
+def edit_schedule(schedule_id):
+    with get_db() as conn:
+        schedule = conn.execute(
+            "SELECT * FROM schedules WHERE id = ?",
+            (schedule_id,)
+        ).fetchone()
 
+    if schedule is None:
+        return "Không tìm thấy lịch học.", 404
+
+    if request.method == "POST":
+        subject = request.form.get("subject", "").strip()
+        day = request.form.get("day", "").strip()
+        start_time = request.form.get("start_time", "").strip()
+        end_time = request.form.get("end_time", "").strip()
+        room = request.form.get("room", "").strip()
+
+        valid_days = [
+            "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5",
+            "Thứ 6", "Thứ 7", "Chủ nhật"
+        ]
+
+        if not all([subject, day, start_time, end_time, room]):
+            return "Vui lòng nhập đầy đủ thông tin.", 400
+
+        if day not in valid_days:
+            return "Thứ học không hợp lệ.", 400
+
+        try:
+            from datetime import time
+            start = time.fromisoformat(start_time)
+            end = time.fromisoformat(end_time)
+        except ValueError:
+            return "Giờ học không hợp lệ.", 400
+
+        if start >= end:
+            return "Giờ kết thúc phải sau giờ bắt đầu.", 400
+
+        with get_db() as conn:
+            conn.execute(
+                """
+                UPDATE schedules
+                SET subject = ?, day = ?, start_time = ?,
+                    end_time = ?, room = ?
+                WHERE id = ?
+                """,
+                (subject, day, start_time, end_time, room, schedule_id)
+            )
+
+        return redirect(url_for("home"))
+
+    return render_template("edit.html", schedule=schedule)
+
+
+@app.route("/schedules/<int:schedule_id>/delete", methods=["POST"])
+def delete_schedule(schedule_id):
+    with get_db() as conn:
+        result = conn.execute(
+            "DELETE FROM schedules WHERE id = ?",
+            (schedule_id,)
+        )
+
+        if result.rowcount == 0:
+            return "Không tìm thấy lịch học.", 404
+
+    return redirect(url_for("home"))
 if __name__ == "__main__":
     app.run(debug=True)
