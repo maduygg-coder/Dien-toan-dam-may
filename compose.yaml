@@ -1,0 +1,34 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: cloudtask
+      POSTGRES_USER: cloudtask
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Can dat mat khau trong .env}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cloudtask -d cloudtask"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build: .
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      PORT: "8080"
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: cloudtask
+      POSTGRES_USER: cloudtask
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Can dat mat khau trong .env}
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
