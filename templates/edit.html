@@ -1,99 +1,155 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sửa lịch học</title>
-<style>
-body {
-    font-family: Arial, sans-serif;
-    background: #171b24;
-    color: white;
-    max-width: 650px;
-    margin: 40px auto;
-    padding: 20px;
-}
-.card {
-    background: #242b39;
-    padding: 25px;
-    border-radius: 12px;
-}
-label {
-    display: block;
-    margin: 15px 0 7px;
-}
-input, select {
-    width: 100%;
-    box-sizing: border-box;
-    padding: 12px;
-    border-radius: 8px;
-    background: #151c29;
-    color: white;
-    border: 1px solid #667085;
-}
-button {
-    margin-top: 20px;
-    background: #2868e8;
-    color: white;
-    border: 0;
-    padding: 12px 18px;
-    border-radius: 8px;
-    cursor: pointer;
-}
-.alert {
-    background: #4c2530;
-    color: #ffd9de;
-    border: 1px solid #ed6476;
-    padding: 15px;
-    border-radius: 8px;
-}
-a { color: #9fc0ff; margin-left: 15px; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sửa lịch học – StudySchedule Cloud</title>
+  <!-- Shared stylesheet (served by Flask /static/) -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-<h1>Sửa lịch học</h1>
-<div class="card">
 
-{% if error %}
-<div class="alert" role="alert">
-<strong>⚠ Không thể lưu thay đổi!</strong>
-<p>{{ error }}</p>
+<div class="container--narrow">
+
+  <h1>✏️ Sửa lịch học</h1>
+  <p class="subtitle">Chỉnh sửa thông tin và nhấn Lưu thay đổi.</p>
+
+  <div class="card">
+
+    {% if error %}
+    <div class="alert" role="alert">
+      <span class="alert__icon">⚠</span>
+      <div>
+        <strong>Không thể lưu thay đổi!</strong>
+        <p>{{ error }}</p>
+      </div>
+    </div>
+    {% endif %}
+
+    <form id="edit-form"
+          method="post"
+          action="{{ url_for('edit_schedule', schedule_id=schedule.id) }}"
+          novalidate>
+
+      <label for="subject">Tên môn học</label>
+      <input id="subject" name="subject" required
+             value="{{ schedule.subject }}"
+             autocomplete="off">
+      <div class="field-error" id="err-subject">Vui lòng nhập tên môn học.</div>
+
+      <label for="day">Thứ học</label>
+      <select id="day" name="day" required>
+        {% for d in ['Thứ 2','Thứ 3','Thứ 4','Thứ 5',
+                     'Thứ 6','Thứ 7','Chủ nhật'] %}
+        <option value="{{ d }}"
+          {% if schedule.day == d %}selected{% endif %}>
+          {{ d }}
+        </option>
+        {% endfor %}
+      </select>
+      <div class="field-error" id="err-day">Vui lòng chọn thứ học.</div>
+
+      <div class="row">
+        <div>
+          <label for="start_time">Giờ bắt đầu</label>
+          <input type="time" id="start_time" name="start_time" step="900" required
+                 value="{{ schedule.start_time }}">
+          <div class="field-error" id="err-start">Vui lòng chọn giờ bắt đầu.</div>
+        </div>
+        <div>
+          <label for="end_time">Giờ kết thúc</label>
+          <input type="time" id="end_time" name="end_time" step="900" required
+                 value="{{ schedule.end_time }}">
+          <div class="field-error" id="err-end">Giờ kết thúc phải sau giờ bắt đầu.</div>
+        </div>
+      </div>
+
+      <label for="room">Phòng học</label>
+      <input id="room" name="room" required
+             value="{{ schedule.room }}"
+             autocomplete="off">
+      <div class="field-error" id="err-room">Vui lòng nhập phòng học.</div>
+
+      <div class="row" style="margin-top: 24px;">
+        <button class="btn btn-primary" type="submit">💾 Lưu thay đổi</button>
+        <a class="btn btn-secondary"
+           href="{{ url_for('home') }}">← Quay lại</a>
+      </div>
+
+    </form>
+  </div>
 </div>
-{% endif %}
 
-<form method="post"
-      action="{{ url_for('edit_schedule', schedule_id=schedule.id) }}">
+<script>
+/* ============================================================
+   Client-side validation cho form sửa lịch
+   (logic giống index.html, tách để không phụ thuộc nhau)
+   ============================================================ */
+(function () {
+  var form    = document.getElementById('edit-form');
+  var subject = document.getElementById('subject');
+  var day     = document.getElementById('day');
+  var room    = document.getElementById('room');
+  var startEl = document.getElementById('start_time');
+  var endEl   = document.getElementById('end_time');
 
-<label>Tên môn học</label>
-<input name="subject" value="{{ schedule.subject }}" required>
+  function setError(input, errId, show) {
+    var errEl = document.getElementById(errId);
+    if (show) {
+      input.classList.add('is-invalid');
+      errEl.classList.add('visible');
+    } else {
+      input.classList.remove('is-invalid');
+      errEl.classList.remove('visible');
+    }
+  }
 
-<label>Thứ học</label>
-<select name="day" required>
-{% for d in ['Thứ 2','Thứ 3','Thứ 4','Thứ 5',
-             'Thứ 6','Thứ 7','Chủ nhật'] %}
-<option value="{{ d }}"
-{% if schedule.day == d %}selected{% endif %}>
-{{ d }}
-</option>
-{% endfor %}
-</select>
+  // Xóa lỗi khi người dùng chỉnh sửa
+  [subject, day, room, startEl, endEl].forEach(function(el) {
+    el.addEventListener('input', function() {
+      el.classList.remove('is-invalid');
+      var errId = {
+        subject: 'err-subject', day: 'err-day',
+        room: 'err-room', start_time: 'err-start', end_time: 'err-end'
+      }[el.name];
+      if (errId) document.getElementById(errId).classList.remove('visible');
+    });
+  });
 
-<label>Giờ bắt đầu</label>
-<input type="time" name="start_time" step="900"
-       value="{{ schedule.start_time }}" required>
+  // Kiểm tra live khi đổi giờ
+  function checkTime() {
+    if (startEl.value && endEl.value) {
+      setError(endEl, 'err-end', startEl.value >= endEl.value);
+    }
+  }
+  startEl.addEventListener('change', checkTime);
+  endEl.addEventListener('change', checkTime);
 
-<label>Giờ kết thúc</label>
-<input type="time" name="end_time" step="900"
-       value="{{ schedule.end_time }}" required>
+  form.addEventListener('submit', function (e) {
+    var valid = true;
 
-<label>Phòng học</label>
-<input name="room" value="{{ schedule.room }}" required>
+    if (!subject.value.trim()) { setError(subject, 'err-subject', true); valid = false; }
+    else                        { setError(subject, 'err-subject', false); }
 
-<button type="submit">Lưu thay đổi</button>
-<a href="{{ url_for('home') }}">Quay lại</a>
+    if (!day.value)             { setError(day, 'err-day', true); valid = false; }
+    else                        { setError(day, 'err-day', false); }
 
-</form>
-</div>
+    if (!room.value.trim())     { setError(room, 'err-room', true); valid = false; }
+    else                        { setError(room, 'err-room', false); }
+
+    if (!startEl.value)         { setError(startEl, 'err-start', true); valid = false; }
+    else                        { setError(startEl, 'err-start', false); }
+
+    if (!endEl.value || (startEl.value && startEl.value >= endEl.value)) {
+      setError(endEl, 'err-end', true); valid = false;
+    } else {
+      setError(endEl, 'err-end', false);
+    }
+
+    if (!valid) e.preventDefault();
+  });
+})();
+</script>
+
 </body>
 </html>
