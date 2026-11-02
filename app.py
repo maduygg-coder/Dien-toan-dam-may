@@ -6,10 +6,13 @@ import os
 import psycopg
 from psycopg.rows import dict_row
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, flash
+import secrets
 
 load_dotenv(Path(__file__).resolve().parent / ".env")
 app = Flask(__name__)
+# secret_key cần thiết để dùng flash(); lấy từ env nếu có
+app.secret_key = os.environ.get("SECRET_KEY", secrets.token_hex(32))
 
 DAYS = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5",
         "Thứ 6", "Thứ 7", "Chủ nhật"]
@@ -143,6 +146,7 @@ def add_schedule():
             VALUES (%s, %s, %s, %s, %s)
         """, tuple(data[key] for key in FIELDS))
 
+    flash(f"Đã thêm lịch học môn {data['subject']} thành công!", "success")
     return redirect(url_for("home"))
 
 
@@ -191,6 +195,7 @@ def edit_schedule(schedule_id):
             WHERE id=%s
         """, (*[data[key] for key in FIELDS], schedule_id))
 
+    flash(f"Đã cập nhật lịch học môn {data['subject']} thành công!", "success")
     return redirect(url_for("home"))
 
 
@@ -204,6 +209,7 @@ def delete_schedule(schedule_id):
         if result.rowcount == 0:
             return "Không tìm thấy lịch học.", 404
 
+    flash("Đã xóa lịch học thành công.", "success")
     return redirect(url_for("home"))
 
 
