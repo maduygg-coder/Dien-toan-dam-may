@@ -194,7 +194,7 @@ def edit_schedule(schedule_id):
     return redirect(url_for("home"))
 
 
-@app.route("/schedules/<int:schedule_id>/delete", methods=["POST"])
+@app.route("/schedules/<int:schedule_id>/delete", methods=["POST"])         
 def delete_schedule(schedule_id):
     with get_db() as conn:
         result = conn.execute(
